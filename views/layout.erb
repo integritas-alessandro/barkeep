@@ -50,13 +50,18 @@
           <ul>
             <!-- These extra divs are needed for styling. -->
             <li class="<%= current_page_if_url("commits") %>">
-              <div><a href="/commits">Commits</a></div>
+              <% if current_user %>
+                <div><a href="/commits">Commits</a></div>
+              <% end %>
             </li>
             <li class="<%= current_page_if_url("stats") %>">
-              <div><a href="/stats">Stats</a></div>
+              <% if current_user %>
+                <div><a href="/stats">Stats</a></div>
+              <% end %>
             </li>
           </ul>
         </nav>
+
 
         <div id="signInBox">
           <% if current_user %>

@@ -37,6 +37,7 @@ require "lib/redis_manager"
 require "lib/redcarpet_extensions"
 require "lib/mustache_renderer"
 require "resque_jobs/deliver_review_request_emails.rb"
+require "models/permitted_user"
 
 NODE_MODULES_BIN_PATH = "./node_modules/.bin"
 OPENID_AX_EMAIL_SCHEMA = "http://axschema.org/contact/email"
@@ -49,6 +50,8 @@ UNAUTHENTICATED_PREVIEW_ROUTES = ["/commits/", "/stats"]
 
 # OPENID_PROVIDERS is a string env variable. It's a comma-separated list of OpenID providers.
 OPENID_PROVIDERS_ARRAY = OPENID_PROVIDERS.split(",")
+
+PERMITTED_USERS = ""
 
 class BarkeepServer < Sinatra::Base
   attr_accessor :current_user
@@ -137,6 +140,11 @@ class BarkeepServer < Sinatra::Base
   end
 
   configure :production do
+
+   # File.open("/config/permitted_users").each_line do |line|
+   #    PERMITTED_USERS << line
+   #  end
+
     set :logging, Logger::INFO
     set :session_secret, COOKIE_SESSION_SECRET if defined?(COOKIE_SESSION_SECRET)
     GitDiffUtils.setup(RedisManager.redis_instance)
@@ -240,11 +248,21 @@ class BarkeepServer < Sinatra::Base
     when OpenID::Consumer::SUCCESS
       ax_resp = OpenID::AX::FetchResponse.from_success_response(openid_response)
       email = ax_resp["http://axschema.org/contact/email"][0]
-      if defined?(PERMITTED_USERS) && !PERMITTED_USERS.empty?
-        unless PERMITTED_USERS.split(",").map(&:strip).include?(email)
-          halt 401, "Your email #{email} is not authorized to login to Barkeep."
-        end
+
+      permitted_user = PermittedUser[:email => email]
+
+      if permitted_user.nil?
+        session[:email_denied] =  email
+        halt erb(:denied)
       end
+
+      # if defined?(PERMITTED_USERS) && !PERMITTED_USERS.empty?
+      #  unless PERMITTED_USERS.split(",").map(&:strip).include?(email)
+      #    # halt 401, "<p class='message_denied'>Your email #{email} is not authorized to login to Barkeep.</p>"
+      #    session[:email_denied] =  email
+      #    halt erb(:denied)
+      #  end
+      # end
       session[:email] = email
       unless User.find(:email => email)
         # If there are no admin users yet, make the first user to log in the first admin.
