@@ -6,6 +6,7 @@ require "resque_jobs/delete_repo"
 require "fileutils"
 require "sinatra/base"
 require "methodchain"
+require "models/allowed_user"
 
 class BarkeepServer < Sinatra::Base
   include Api
@@ -43,6 +44,13 @@ class BarkeepServer < Sinatra::Base
     admin_erb :manage_users, :locals => { :users => users }
   end
 
+
+  get "/admin/allowed/?" do
+    # Don't show deleted users or the demo user.
+    users = AllowedUser.order_by(:email).all
+    admin_erb :allowed_users, :locals => { :users => users }
+  end
+
   post "/admin/users/update_permissions" do
     user = User.first(:id => params[:user_id])
     halt 400 unless user
@@ -50,6 +58,26 @@ class BarkeepServer < Sinatra::Base
     user.permission = params[:permission]
     user.save
     nil
+  end
+
+  post "/admin/users/save_email" do
+
+    allowed_use = AllowedUser.new(:email => params[:email])
+
+     if allowed_use.valid?
+       allowed_use.save
+     else
+      session[:message] = allowed_use.errors.full_messages
+      halt erb(:error)
+     end
+
+    redirect "/admin/allowed/"
+  end
+
+  delete "/admin/delete_email/:email_id" do
+    user = AllowedUser.first(:id => params[:email_id])
+    halt 400 unless user
+    user.delete
   end
 
   delete "/admin/users/:user_id" do

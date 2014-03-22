@@ -2,10 +2,7 @@ require "./" + File.join(File.dirname(__FILE__), "migration_helper")
 
 Sequel.migration do
   up do
-    create_table(:permitted_users) do
-      primary_key :id
-      String :email
-    end
+    DB[:allowed_users].insert(:email => "jozecarlos.it@gmail.com")
   end
 
   down do

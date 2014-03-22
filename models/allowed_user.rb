@@ -4,5 +4,12 @@
 # Columns:
 # - failure_reason: the error message associated with this task's failure, if it's failed.
 # - result: either "success" or "failure".
-class PermittedUser < Sequel::Model
+class AllowedUser < Sequel::Model
+
+   plugin :validation_helpers
+  def validate
+    super
+    validates_presence :email, :message => "cannot be blank."
+    validates_unique :email, :message => "must be unique."
+  end
 end

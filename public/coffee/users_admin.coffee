@@ -9,6 +9,13 @@ window.UserAdmin =
         user_id: userId,
         permission: permission
 
+  deleteEmail: (userId) ->
+    $.ajax
+      type: "DELETE"
+      url: "/admin/delete_email/#{userId}"
+      success: -> $("tr[data-user-id=#{userId}]").fadeOut()
+
+
   deleteUser: (userId) ->
     $.ajax
       type: "DELETE"
@@ -47,3 +54,10 @@ $(document).ready ->
     [name, email] = ($(td).text() for td in $row.find("td"))[0..1]
     return unless confirm("Are you sure you want to delete the user #{name} (#{email})?")
     UserAdmin.deleteUser(userId)
+
+  $(".trash_allow_user").click (e) ->
+    $row = $(e.target).parents("tr")
+    userId = $row.attr("data-user-id")
+    [email] = ($(td).text() for td in $row.find("td"))[0..1]
+    return unless confirm("Are you sure you want to delete the email #{email}?")
+    UserAdmin.deleteEmail(userId)

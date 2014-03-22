@@ -37,7 +37,7 @@ require "lib/redis_manager"
 require "lib/redcarpet_extensions"
 require "lib/mustache_renderer"
 require "resque_jobs/deliver_review_request_emails.rb"
-require "models/permitted_user"
+require "models/allowed_user"
 
 NODE_MODULES_BIN_PATH = "./node_modules/.bin"
 OPENID_AX_EMAIL_SCHEMA = "http://axschema.org/contact/email"
@@ -249,9 +249,9 @@ class BarkeepServer < Sinatra::Base
       ax_resp = OpenID::AX::FetchResponse.from_success_response(openid_response)
       email = ax_resp["http://axschema.org/contact/email"][0]
 
-      permitted_user = PermittedUser[:email => email]
+      allowed_user = AllowedUser[:email => email]
 
-      if permitted_user.nil?
+      if allowed_user.nil?
         session[:email_denied] =  email
         halt erb(:denied)
       end

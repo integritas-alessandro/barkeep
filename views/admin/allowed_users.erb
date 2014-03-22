@@ -1,0 +1,30 @@
+<% # A dashboard to add users and manage user permissions. %>
+
+<%= js_bundle(:users_admin_js) %>
+
+<div id="manageUsers" data-user-id="<%= current_user.id %>">
+
+  <%= admin_page_breadcrumb "Allowed users" %>
+
+
+  <br/>
+  <form name="email_allowed" action="/admin/users/save_email" method="post" style="width: 60%">
+    Email: <input type="text" class="text_field" name="email" width="180px" />
+    <input type="submit" value="Add">
+  </form>
+  <br/>
+  <hr style="border-top: dotted 1px;" />
+  <table>
+    <tr>
+      <th>Email</th>
+      <th>Delete</th>
+    </tr>
+
+    <% users.each do |user| %>
+      <tr data-user-id="<%= user.id %>">
+        <td width="400px"><%= user.email %></td>
+        <td><div class="trash_allow_user"></div></td>
+      </tr>
+    <% end %>
+  </table>
+</div>
